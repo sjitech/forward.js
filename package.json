@@ -1,0 +1,23 @@
+{
+  "name": "forward.js",
+  "version": "1.0.14",
+  "description": "An efficient port forwarding utility",
+  "bin": {"forward.js": "./forward.js"},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sjitech/forward.js.git"
+  },
+  "keywords": [
+    "port",
+    "forward"
+  ],
+  "author": "osexp2000@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sjitech/forward.js/issues"
+  },
+  "homepage": "https://github.com/sjitech/forward.js#readme"
+}

@@ -18,7 +18,7 @@ forward.js [localAddress:]port [destHost:]port
 Note: 
 - IPv6 address must be wrapped by square brackets, e.g.\[::1\]:8080
 
-##Samples
+## Samples
 Forward TCP port 8080 of all interfaces, to a.b.c:9090
 ```
 forward.js 8080 a.b.c:9090

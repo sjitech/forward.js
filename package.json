@@ -1,6 +1,6 @@
 {
   "name": "forward.js",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "An efficient port forwarding utility",
   "bin": {"forward.js": "./forward.js"},
   "scripts": {

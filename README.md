@@ -44,25 +44,36 @@ Using parameters {
 Listening at [::]:9999
 Incoming connection will be forwarded to [www.google.com]:80
 
-Press ENTER to toggle Log level. 0(default):no 1:connection log 2:dump data.
+Press ENTER to toggle Log level.
+  0: No (default)
+  1: Show connection
+  2: Dump all req/res data
 
-                  
-Log level: 1
 
-Log level: 2
-[[::ffff:127.0.0.1]:56618] Connected from [::ffff:127.0.0.1]:56618 
-<[::ffff:127.0.0.1]:56618 FWD> Connect to [www.google.com]:80
-<[::ffff:127.0.0.1]:56618 FWD> Connected to [216.58.197.4]:80 source [192.168.11.3]:64287
-[[::ffff:127.0.0.1]:56618] first data
+Log level: 1: Show connection
+
+Log level: 2: Dump all req/res data
+
+[::ffff:127.0.0.1]:56618 Connected from [::ffff:127.0.0.1]:56618
+
+[::ffff:127.0.0.1]:56618 Connect to [www.google.com]:80
+
+[::ffff:127.0.0.1]:56618 Connected to [216.58.197.4]:80 source [192.168.11.3]:64287
+
+[::ffff:127.0.0.1]:56618 <REQ>data
 GET / HTTP/1.1
 
-<[::ffff:127.0.0.1]:56618 FWD> first data
+[::ffff:127.0.0.1]:56618 <RES>data
 HTTP/1.1 302 Found
 ...
-[[::ffff:127.0.0.1]:56618] EOF
-<[::ffff:127.0.0.1]:56618 FWD> EOF
-[[::ffff:127.0.0.1]:56618] closed
-<[::ffff:127.0.0.1]:56618 FWD> closed
+
+[::ffff:127.0.0.1]:56618 <REQ>EOF
+
+[::ffff:127.0.0.1]:56618 <RES>EOF
+
+[::ffff:127.0.0.1]:56618 <REQ>closed
+
+[::ffff:127.0.0.1]:56618 <RES>closed
 ```
 Do not worry about the log of listening at `::`(all IPv6 interfaces),
 **as far as i'v tested, on Windows and Mac OS X, listening at `::` will cause 

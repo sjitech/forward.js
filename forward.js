@@ -26,29 +26,32 @@ function main(args) {
   let _l = 0; //log level.
 
   net.createServer({allowHalfOpen: true}, con => {
-    const tag = `[[${con.remoteAddress}]:${ con.remotePort}] `;
-    _l && console.log(tag + `Connected from [${con.remoteAddress}]:${ con.remotePort} `);
+    const tag = `\n[${con.remoteAddress}]:${con.remotePort} `;
+    _l && console.log(tag + `Connected from [${con.remoteAddress}]:${con.remotePort} `);
 
-    const TAG = `<[${con.remoteAddress}]:${ con.remotePort} FWD> `;
-    _l && console.log(TAG + `Connect to [${destHost}]:${ destPort}`);
+    const TAG = tag;
+    _l && console.log(TAG + `Connect to [${destHost}]:${destPort}`);
 
     const CON = net.connect({host: destHost, port: destPort}, () =>
-    _l && console.log(TAG + `Connected to [${CON.remoteAddress}]:${ CON.remotePort} source [${CON.localAddress}]:${ CON.localPort}`));
+      _l && console.log(TAG + `Connected to [${CON.remoteAddress}]:${CON.remotePort} source [${CON.localAddress}]:${CON.localPort}`));
 
-    [{src: con, tag: tag, dst: CON}, {src: CON, tag: TAG, dst: con}].forEach(v =>
-      v.src.once('data', buf => _l && console.log(v.tag + 'first data'))
-        .on('data', buf => (_l === 2 && process.stdout.write(buf), v.dst.write(buf)))
-        .on('end', () => (_l && console.log(v.tag + 'EOF'), v.dst.end()))
-        .on('close', () => (_l && console.log(v.tag + 'closed'), v.dst.destroy()))
-        .on('error', e => _l && console.log(v.tag + e))
-    );
+    [{src: con, tag: tag, dst: CON}, {src: CON, tag: TAG, dst: con}].forEach(v => {
+      v.src.on('data', buf => _l >= 2 && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'data'))
+        .on('data', buf => (_l >= 2 && process.stdout.write(buf), v.dst.write(buf)))
+        .on('end', () => (_l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'EOF'), v.dst.end()))
+        .on('close', () => (_l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'closed'), v.dst.destroy()))
+        .on('error', e => _l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + e))
+    });
   }).listen({host: localAddress, port: localPort}, function () {
-    console.log(`Listening at [${this.address().address}]:${ this.address().port}`);
-    console.log(`Incoming connection will be forwarded to [${destHost}]:${ destPort}`);
-    console.log('\nPress ENTER to toggle Log level. 0(default):no 1:connection log 2:dump data.\n');
+    const logLevelDescs = ['No (default)', 'Show connection', 'Dump all req/res data'];
+
+    console.log(`Listening at [${this.address().address}]:${this.address().port}`);
+    console.log(`Incoming connection will be forwarded to [${destHost}]:${destPort}`);
+    console.log('\nPress ENTER to toggle Log level.');
+    console.log(logLevelDescs.reduce((sum, v, i) => sum + `  ${i}: ${v}\n`, ''));
 
     //Read line from standard input to toggle log level
-    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level: ' + (_l = (_l + 1) % 3)));
+    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level: ' + (_l = (_l + 1) % logLevelDescs.length) + ': ' + logLevelDescs[_l]));
   }).on('error', e => console.log('' + e));
 }
 

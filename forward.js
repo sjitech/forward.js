@@ -26,21 +26,19 @@ function main(args) {
   let _l = 0; //log level.
 
   net.createServer({allowHalfOpen: true}, con => {
-    const tag = `\n[${con.remoteAddress}]:${con.remotePort} `;
+    const tag = `====[${con.remoteAddress}]:${con.remotePort} `;
     _l && console.log(tag + `Connected from [${con.remoteAddress}]:${con.remotePort} `);
-
-    const TAG = tag;
-    _l && console.log(TAG + `Connect to [${destHost}]:${destPort}`);
+    _l && console.log(tag + `Connect to [${destHost}]:${destPort}`);
 
     const CON = net.connect({host: destHost, port: destPort}, () =>
-      _l && console.log(TAG + `Connected to [${CON.remoteAddress}]:${CON.remotePort} source [${CON.localAddress}]:${CON.localPort}`));
+      _l && console.log(tag + `Connected to [${CON.remoteAddress}]:${CON.remotePort} src [${CON.localAddress}]:${CON.localPort}`));
 
-    [{src: con, tag: tag, dst: CON}, {src: CON, tag: TAG, dst: con}].forEach(v => {
-      v.src.on('data', buf => _l >= 2 && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'data'))
-        .on('data', buf => (_l >= 2 && process.stdout.write(buf), v.dst.write(buf)))
-        .on('end', () => (_l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'EOF'), v.dst.end()))
-        .on('close', () => (_l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + 'closed'), v.dst.destroy()))
-        .on('error', e => _l && console.log(v.tag + (v.src == con ? '<REQ>' : '<RES>') + e))
+    [{src: con, dst: CON, tag: tag + '<REQ>', d: '>'}, {src: CON, dst: con, tag: tag + '<RES>', d: '<'}].forEach(v => {
+      v.src.on('data', buf => _l >= 2 && console.log('\n' + v.tag + 'Data: ' + v.d.repeat(Math.max(70 - v.tag.length - 6, 0))))
+        .on('data', buf => (_l >= 2 && (process.stdout.write(buf), process.stdout.write('\n')), v.dst.write(buf)))
+        .on('end', () => (_l && (console.log(v.tag + 'Ended'), v.isEnded = true), v.dst.end()))
+        .on('close', () => (_l && !v.isEnded && console.log(v.tag + 'Closed'), v.dst.destroy()))
+        .on('error', e => _l && console.log(v.tag + e))
     });
   }).listen({host: localAddress, port: localPort}, function () {
     const logLevelDescs = ['No (default)', 'Show connection', 'Dump all req/res data'];
@@ -51,7 +49,7 @@ function main(args) {
     console.log(logLevelDescs.reduce((sum, v, i) => sum + `  ${i}: ${v}\n`, ''));
 
     //Read line from standard input to toggle log level
-    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level: ' + (_l = (_l + 1) % logLevelDescs.length) + ': ' + logLevelDescs[_l]));
+    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level ' + (_l = (_l + 1) % logLevelDescs.length) + ': ' + logLevelDescs[_l] + '\n'));
   }).on('error', e => console.log('' + e));
 }
 

@@ -50,30 +50,29 @@ Press ENTER to toggle Log level.
   2: Dump all req/res data
 
 
-Log level: 1: Show connection
+Log level 1: Show connection
 
-Log level: 2: Dump all req/res data
 
-[::ffff:127.0.0.1]:56618 Connected from [::ffff:127.0.0.1]:56618
+Log level 2: Dump all req/res data
 
-[::ffff:127.0.0.1]:56618 Connect to [www.google.com]:80
+====[::ffff:127.0.0.1]:56618 Connected from [::ffff:127.0.0.1]:56618
+====[::ffff:127.0.0.1]:56618 Connect to [www.google.com]:80
+====[::ffff:127.0.0.1]:56618 Connected to [216.58.197.4]:80 src [192.168.11.3]:64287
 
-[::ffff:127.0.0.1]:56618 Connected to [216.58.197.4]:80 source [192.168.11.3]:64287
-
-[::ffff:127.0.0.1]:56618 <REQ>data
+====[::ffff:127.0.0.1]:56618 <REQ>Data:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 GET / HTTP/1.1
 
-[::ffff:127.0.0.1]:56618 <RES>data
-HTTP/1.1 302 Found
+
+====[::ffff:127.0.0.1]:56618 <RES>Data:<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+HTTP/1.1 404 Found
 ...
 
-[::ffff:127.0.0.1]:56618 <REQ>EOF
 
-[::ffff:127.0.0.1]:56618 <RES>EOF
+====[::ffff:127.0.0.1]:56618 <RES>Data:<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+...
 
-[::ffff:127.0.0.1]:56618 <REQ>closed
-
-[::ffff:127.0.0.1]:56618 <RES>closed
+====[::ffff:127.0.0.1]:56618 <REQ>Ended
+====[::ffff:127.0.0.1]:56618 <RES>Ended
 ```
 Do not worry about the log of listening at `::`(all IPv6 interfaces),
 **as far as i'v tested, on Windows and Mac OS X, listening at `::` will cause 

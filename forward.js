@@ -24,6 +24,7 @@ function main(args) {
   console.log('Using parameters ' + JSON.stringify({localAddress, localPort, destHost, destPort}, null, '  '));
 
   let _l = 0; //log level.
+  const EOF = new Buffer('<EOF>\n');
 
   net.createServer({allowHalfOpen: true}, con => {
     const tag = `====[${con.remoteAddress}]:${con.remotePort} `;
@@ -33,12 +34,21 @@ function main(args) {
     const CON = net.connect({host: destHost, port: destPort}, () =>
       _l && console.log(tag + `Connected to [${CON.remoteAddress}]:${CON.remotePort} src [${CON.localAddress}]:${CON.localPort}`));
 
-    [{src: con, dst: CON, tag: tag + '<REQ>', d: '>'}, {src: CON, dst: con, tag: tag + '<RES>', d: '<'}].forEach(v => {
-      v.src.on('data', buf => _l >= 2 && console.log('\n' + v.tag + 'Data: ' + v.d.repeat(Math.max(70 - v.tag.length - 6, 0))))
-        .on('data', buf => (_l >= 2 && (process.stdout.write(buf), process.stdout.write('\n')), v.dst.write(buf)))
-        .on('end', () => (_l && (console.log(v.tag + 'Ended'), v.isEnded = true), v.dst.end()))
-        .on('close', () => (_l && !v.isEnded && console.log(v.tag + 'Closed'), v.dst.destroy()))
-        .on('error', e => _l && console.log(v.tag + e))
+    [{src: con, dst: CON, tag: tag + '<REQ>'}, {src: CON, dst: con, tag: tag + '<RES>'}].forEach(v => {
+      v.src
+        .on('data', buf => {
+          v.dst.write(buf);
+          if (_l >= 2) {
+            process.stdout.write(Buffer.concat([
+                v.T = v.T || new Buffer(v.tag + 'Data:\n'),
+                buf[buf.length - 1] === 0xa ? buf : Buffer.concat([buf, EOF])
+              ])
+            );
+          }
+        })
+        .on('end', () => (v.dst.end(), _l && console.log(v.tag + 'Ended')))
+        .on('close', () => (v.dst.destroy(), _l && console.log(v.tag + 'Closed')))
+        .on('error', e => (v.dst.destroy(), _l && console.log(v.tag + e)))
     });
   }).listen({host: localAddress, port: localPort}, function () {
     const logLevelDescs = ['No (default)', 'Show connection', 'Dump all req/res data'];

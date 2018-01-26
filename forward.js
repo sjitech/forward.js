@@ -39,7 +39,7 @@ function main(args) {
         .on('data', buf => {
           v.dst.write(buf);
           if (_l >= 2) {
-            process.stdout.write(Buffer.concat([
+            process.stderr.write(Buffer.concat([
                 v.T = v.T || new Buffer(v.tag + 'Data:\n'),
                 buf[buf.length - 1] === 0xa ? buf : Buffer.concat([buf, EOF])
               ])

@@ -24,7 +24,8 @@ function main(args) {
   console.log('Using parameters ' + JSON.stringify({localAddress, localPort, destHost, destPort}, null, '  '));
 
   let _l = 0; //log level.
-  const EOF = new Buffer('<<END>>\n');
+  const EOF = Buffer.from('<<END>>\n');
+  const EMPTY = Buffer.alloc(0);
 
   net.createServer({allowHalfOpen: true}, con => {
     const tag = `====[${con.remoteAddress}]:${con.remotePort} `;
@@ -41,7 +42,8 @@ function main(args) {
           if (_l >= 2) {
             process.stdout.write(Buffer.concat([
                 v.T = v.T || new Buffer(v.tag + 'Data:\n'),
-                buf[buf.length - 1] === 0xa ? buf : Buffer.concat([buf, EOF])
+                buf,
+                buf[buf.length - 1] === 0xa ? EMPTY : EOF
               ])
             );
           }
@@ -55,11 +57,10 @@ function main(args) {
 
     console.log(`Listening at [${this.address().address}]:${this.address().port}`);
     console.log(`Incoming connection will be forwarded to [${destHost}]:${destPort}`);
-    console.log('\nPress ENTER to toggle Log level.');
-    console.log(logLevelDescs.reduce((sum, v, i) => sum + `  ${i}: ${v}\n`, ''));
+    console.log('Press ENTER to toggle Log level.');
 
     //Read line from standard input to toggle log level
-    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level ' + (_l = (_l + 1) % logLevelDescs.length) + ': ' + logLevelDescs[_l] + '\n'));
+    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level : ' + logLevelDescs[(_l = (_l + 1) % logLevelDescs.length)]));
   }).on('error', e => console.log('' + e));
 }
 

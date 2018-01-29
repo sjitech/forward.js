@@ -24,7 +24,7 @@ function main(args) {
   console.log('Using parameters ' + JSON.stringify({localAddress, localPort, destHost, destPort}, null, '  '));
 
   let _l = 0; //log level.
-  const EOF = new Buffer('<EOF>\n');
+  const EOF = new Buffer('<<END>>\n');
 
   net.createServer({allowHalfOpen: true}, con => {
     const tag = `====[${con.remoteAddress}]:${con.remotePort} `;
@@ -39,7 +39,7 @@ function main(args) {
         .on('data', buf => {
           v.dst.write(buf);
           if (_l >= 2) {
-            process.stderr.write(Buffer.concat([
+            process.stdout.write(Buffer.concat([
                 v.T = v.T || new Buffer(v.tag + 'Data:\n'),
                 buf[buf.length - 1] === 0xa ? buf : Buffer.concat([buf, EOF])
               ])

@@ -9,6 +9,9 @@ function show_usage() {
   console.log('  forward.js [localAddress:]port [destHost:]port');
   console.log('Note:');
   console.log('  IPv6 address must be wrapped by square brackets, e.g. [::1]:8080');
+  console.log('');
+  console.log('You can press ENTER key to toggle Log level (default: 0 (none)).');
+  console.log('When log level is 0, you can input transmission delay in milliseconds.');
 }
 
 function main(args) {
@@ -24,6 +27,8 @@ function main(args) {
   console.log('Using parameters ' + JSON.stringify({localAddress, localPort, destHost, destPort}, null, '  '));
 
   let _l = 0; //log level.
+  let _pass_through = ((callback) => callback());
+  let _delay = 0;
   const EOF = Buffer.from('<<END>>\n');
   const EMPTY = Buffer.alloc(0);
 
@@ -38,15 +43,17 @@ function main(args) {
     [{src: con, dst: CON, tag: tag + '<REQ>'}, {src: CON, dst: con, tag: tag + '<RES>'}].forEach(v => {
       v.src
         .on('data', buf => {
-          v.dst.write(buf);
-          if (_l >= 2) {
-            process.stdout.write(Buffer.concat([
-                v.T = v.T || new Buffer(v.tag + 'Data:\n'),
-                buf,
-                buf[buf.length - 1] === 0xa ? EMPTY : EOF
-              ])
-            );
-          }
+          (_delay ? setTimeout : _pass_through)( () => {
+            v.dst.write(buf);
+            if (_l >= 2) {
+              process.stdout.write(Buffer.concat([
+                  v.T = v.T || new Buffer(v.tag + 'Data:\n'),
+                  buf,
+                  buf[buf.length - 1] === 0xa ? EMPTY : EOF
+                ])
+              );
+            }
+          }, _delay);
         })
         .on('end', () => (v.dst.end(), _l && console.log(v.tag + 'Ended')))
         .on('close', () => (v.dst.destroy(), _l && console.log(v.tag + 'Closed')))
@@ -57,10 +64,29 @@ function main(args) {
 
     console.log(`Listening at [${this.address().address}]:${this.address().port}`);
     console.log(`Incoming connection will be forwarded to [${destHost}]:${destPort}`);
-    console.log('Press ENTER to toggle Log level.');
+    console.log('You can press ENTER key to toggle Log level (default: 0 (none)).');
+    console.log('When log level is 0, you can input transmission delay in milliseconds.');
 
     //Read line from standard input to toggle log level
-    require('readline').createInterface({input: process.stdin}).on('line', line => console.log('Log level : ' + logLevelDescs[(_l = (_l + 1) % logLevelDescs.length)]));
+    require('readline').createInterface({input: process.stdin}).on('line', line => {
+      line = line.replace(/\r?\n$/, '')
+      if (_l == 0 && line) {
+        try {
+          let n = parseInt(line)
+          if (n < 0) {
+            console.log("invalid unsigned integer");
+          } else {
+            _delay = n;
+            console.log(`Set transmission delay = ${_delay} ms`);
+          }
+        } catch (e) {
+          console.log("invalid unsigned integer");
+        }
+      } else {
+        console.log('Log level : ' + logLevelDescs[(_l = (_l + 1) % logLevelDescs.length)]);
+        if (_l == 0) console.log('You can input transmission delay in milliseconds.');
+      }
+    });
   }).on('error', e => console.log('' + e));
 }
 
